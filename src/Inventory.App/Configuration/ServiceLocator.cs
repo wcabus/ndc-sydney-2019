@@ -22,6 +22,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Inventory.Services;
 using Inventory.ViewModels;
 
+using RuhRoh;
+using RuhRoh.Extensions.Microsoft.DependencyInjection;
+using Inventory.Data;
+using System.IO;
+using Inventory.Models;
+using System.Threading.Tasks;
+
 namespace Inventory
 {
     public class ServiceLocator : IDisposable
@@ -76,7 +83,47 @@ namespace Inventory
             serviceCollection.AddTransient<ValidateConnectionViewModel>();
             serviceCollection.AddTransient<CreateDatabaseViewModel>();
 
+            AddSomeChaos(serviceCollection);
+
             _rootServiceProvider = serviceCollection.BuildServiceProvider();
+        }
+
+        private static void AddSomeChaos(IServiceCollection serviceCollection)
+        {
+            serviceCollection.AffectSingleton<ILoginService, LoginService>()
+                .WhenCalling(x => x.SignInWithWindowsHelloAsync())
+                .Throw(new Exception("Windows Hello is currently unavailable"))
+                .AfterNCalls(2);
+
+            //serviceCollection.AffectSingleton<ICustomerService, CustomerService>()
+            //    .WhenCalling(x => x.GetCustomersAsync(With.Any<DataRequest<Customer>>()))
+            //    .SlowItDownBy(TimeSpan.FromSeconds(30))
+            //    .EveryNCalls(2);
+
+            //serviceCollection.AffectSingleton<ILogService, LogService>()
+            //    .WhenCalling(x => x.WriteAsync(With.Any<LogType>(), With.Any<string>(), With.Any<string>(), With.Any<string>(), With.Any<string>()))
+            //    .Throw<IOException>()
+            //    .EveryNCalls(3);
+
+            Func<Task<CustomerModel>, Task<CustomerModel>> transformer = async task =>
+            {
+                var customer = await task;
+                if (customer == null)
+                {
+                    return null;
+                }
+
+                customer.FirstName = "Chaos";
+                customer.LastName = "Monkey";
+                customer.PictureSource = null;
+
+                return customer;
+            };
+
+            serviceCollection.AffectSingleton<ICustomerService, CustomerService>()
+                .WhenCalling(x => x.GetCustomerAsync(With.Any<long>()))
+                .ReturnsAsync<CustomerModel>(t => transformer(t))
+                .EveryNCalls(3);
         }
 
         static public ServiceLocator Current
