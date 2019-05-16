@@ -95,15 +95,15 @@ namespace Inventory
                 .Throw(new Exception("Windows Hello is currently unavailable"))
                 .AfterNCalls(2);
 
-            //serviceCollection.AffectSingleton<ICustomerService, CustomerService>()
-            //    .WhenCalling(x => x.GetCustomersAsync(With.Any<DataRequest<Customer>>()))
-            //    .SlowItDownBy(TimeSpan.FromSeconds(30))
-            //    .EveryNCalls(2);
+            serviceCollection.AffectSingleton<ICustomerService, CustomerService>()
+                .WhenCalling(x => x.GetCustomersAsync(With.Any<DataRequest<Customer>>()))
+                .SlowItDownBy(TimeSpan.FromSeconds(30))
+                .EveryNCalls(2);
 
-            //serviceCollection.AffectSingleton<ILogService, LogService>()
-            //    .WhenCalling(x => x.WriteAsync(With.Any<LogType>(), With.Any<string>(), With.Any<string>(), With.Any<string>(), With.Any<string>()))
-            //    .Throw<IOException>()
-            //    .EveryNCalls(3);
+            serviceCollection.AffectSingleton<ILogService, LogService>()
+                .WhenCalling(x => x.WriteAsync(With.Any<LogType>(), With.Any<string>(), With.Any<string>(), With.Any<string>(), With.Any<string>()))
+                .Throw<IOException>()
+                .EveryNCalls(3);
 
             Func<Task<CustomerModel>, Task<CustomerModel>> transformer = async task =>
             {
