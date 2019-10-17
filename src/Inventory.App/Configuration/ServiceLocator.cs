@@ -21,6 +21,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 using Inventory.Services;
 using Inventory.ViewModels;
+using RuhRoh.Extensions.Microsoft.DependencyInjection;
+using RuhRoh;
+using Inventory.Data;
+using Inventory.Models;
+using System.Threading.Tasks;
 
 using RuhRoh;
 using RuhRoh.Extensions.Microsoft.DependencyInjection;
@@ -92,37 +97,36 @@ namespace Inventory
         {
             serviceCollection.AffectSingleton<ILoginService, LoginService>()
                 .WhenCalling(x => x.SignInWithWindowsHelloAsync())
-                .Throw(new Exception("Windows Hello is currently unavailable"))
+                .Throw<Exception>()
                 .AfterNCalls(2);
 
             serviceCollection.AffectSingleton<ICustomerService, CustomerService>()
                 .WhenCalling(x => x.GetCustomersAsync(With.Any<DataRequest<Customer>>()))
-                .SlowItDownBy(TimeSpan.FromSeconds(30))
+                .SlowItDownBy(TimeSpan.FromSeconds(10))
                 .EveryNCalls(2);
 
             serviceCollection.AffectSingleton<ILogService, LogService>()
                 .WhenCalling(x => x.WriteAsync(With.Any<LogType>(), With.Any<string>(), With.Any<string>(), With.Any<string>(), With.Any<string>()))
-                .Throw<IOException>()
-                .EveryNCalls(3);
+                .Throw(new System.IO.IOException("No more disk space"))
+                .AfterNCalls(3);
 
-            Func<Task<CustomerModel>, Task<CustomerModel>> transformer = async task =>
+            Func<Task<CustomerModel>, Task<CustomerModel>> transformer = async task => 
             {
-                var customer = await task;
+                var customer = await task.ConfigureAwait(false);
                 if (customer == null)
                 {
                     return null;
                 }
 
-                customer.FirstName = "Chaos";
-                customer.LastName = "Monkey";
+                customer.FirstName = "Chuck";
+                customer.LastName = "Norris";
                 customer.PictureSource = null;
-
                 return customer;
             };
 
             serviceCollection.AffectSingleton<ICustomerService, CustomerService>()
                 .WhenCalling(x => x.GetCustomerAsync(With.Any<long>()))
-                .ReturnsAsync<CustomerModel>(t => transformer(t))
+                .ReturnsAsync<CustomerModel>(x => transformer(x))
                 .EveryNCalls(3);
         }
 

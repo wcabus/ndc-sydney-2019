@@ -138,9 +138,8 @@ namespace Inventory.ViewModels
             }
             catch
             {
-                await DialogService.ShowAsync("Windows Hello", "Windows Hello is unavailable, please use your username and password for now");
+                await DialogService.ShowAsync("Windows Hello", "Windows Hello is currently unavailable");
             }
-            
             IsBusy = false;
         }
 

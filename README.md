@@ -4,6 +4,8 @@ If you're looking for the Chaos Engineering bits, head over to `src/Inventory.Ap
 
 This repo showcases a sample Windows 10 application (using the Universal Windows Platform) focused in Line of Business scenarios, showing how to use the latest Windows capabilities in Desktop applications. The sample is based around creating and managing customer, orders, and products for the fictitious company VanArsdel.
 
+If you want to see the Chaos, head to the ServiceLocator class :)
+
 ![VanArsdel Inventory Preview](docs/Introduction/img/app-screenshot.png)
 
 ## Features
